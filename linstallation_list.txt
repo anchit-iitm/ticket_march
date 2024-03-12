@@ -1,0 +1,9 @@
+pip 
+
+pip install <library_name>
+
+flask
+flask_sqlalchemy
+flask_security_too
+
+bcrypt

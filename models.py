@@ -23,20 +23,20 @@ class Role(db.Model, RoleMixin):
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True)
-    username = db.Column(db.String(255), unique=True, nullable=True)
-    password = db.Column(db.String(255), nullable=False)
+    id = db.Column(db.Integer, primary_key=True) # required
+    email = db.Column(db.String(255), unique=True) # required
+    username = db.Column(db.String(255), unique=True, nullable=True) # required
+    password = db.Column(db.String(255), nullable=False) # required
     last_login_at = db.Column(db.DateTime())
     current_login_at = db.Column(db.DateTime())
     last_login_ip = db.Column(db.String(100))
     current_login_ip = db.Column(db.String(100))
     login_count = db.Column(db.Integer)
-    active = db.Column(db.Boolean())
-    fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False)
+    active = db.Column(db.Boolean()) # required
+    fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False) # required
     confirmed_at = db.Column(db.DateTime())
     roles = relationship('Role', secondary='roles_users',
-                         backref=backref('users', lazy='dynamic'))
+                         backref=backref('users', lazy='dynamic')) # required
     
     def __init__(self, email, password, active=True, roles=None, **kwargs):
         super().__init__(**kwargs)
@@ -63,6 +63,7 @@ class Venue(db.Model):
     address = db.Column(db.String(), nullable=False)  # Address of the venue
     capacity = db.Column(db.Integer, nullable=False)  # Maximum capacity of the venue
     description = db.Column(db.String())  # Description of the venue
+    # who_created = db.Column(db.Integer, db.ForeignKey('user.id'))  # Foreign key referencing the user who created the venue
 
     def search(self):
         """

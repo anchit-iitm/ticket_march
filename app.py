@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, make_response
 from models import *
-from flask_security import Security, SQLAlchemyUserDatastore, login_user, roles_accepted, current_user, logout_user
-import bcrypt
-import secrets
+from security_framework import login_user, roles_accepted, current_user, logout_user, security, user_datastore
+import bcrypt, secrets
+from flask_cors import CORS
+from flask_restful import Api
 
 app = Flask(__name__)
 
@@ -11,12 +12,22 @@ app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
 app.config['SECURITY_PASSWORD_SALT'] = secrets.SystemRandom().getrandbits(128)
 
+def create_api_app():
+    api = Api(app)
+    app.app_context().push()
+    print('api created')
+    return api
 
 db.init_app(app)
 app.app_context().push()
 
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-security=Security(app, user_datastore)
+api_hanlder = create_api_app()
+CORS(app)
+
+# user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+# security=Security(app, user_datastore)
+
+security.init_app(app, user_datastore)
 
 # Function to create roles
 def create_roles():
@@ -63,6 +74,7 @@ def admin_user_creation():
         return True
     return False
 
+
 @app.route('/', methods=['GET', 'POST'])
 # check if the request contains a token or not, if yes then we validate the token and return the user details
 def hello_world():
@@ -77,7 +89,7 @@ def hello_world():
         print(name, address)
         return make_response(jsonify({'message':'THE JSON WAS CAPTURED'}), 200)
     
-@app.route('/api/register', methods=['POST'])
+@app.route('/apis/register', methods=['POST'])
 def registerfn():
     data = request.get_json()
     email = data['email']
@@ -96,7 +108,7 @@ def registerfn():
         # Handle the case when the email already exists
         return make_response(jsonify({'message': 'This email is already registered. Please use a different email.'}), 400)    
     
-@app.route('/api/login', methods=['POST'])
+@app.route('/apis/login', methods=['POST'])
 def loginfn():
     data = request.get_json()
     email = data['email']
@@ -106,18 +118,90 @@ def loginfn():
     if user :
         if bcrypt.checkpw(password.encode('utf-8'), user.password):
             # auth_token = user.get_auth_token()
-            login_user(user)
+            login_user(user) # session based login
             activity = UserActivity(user_id=user.id, activity_type='login')
             db.session.add(activity)
             db.session.commit()
-            auth_token = user.get_auth_token()
+            auth_token = user.get_auth_token() # token based login
             return make_response(jsonify({'message': 'User logged in successfully', 'auth_token': auth_token, 'id': current_user.id,
         'email': current_user.email,
         'roles': [role.name for role in current_user.roles]}), 200)
     else:
         return make_response(jsonify({'message': 'Invalid email or password.'}), 400)
 
+@app.route('/apis/venues', methods=['GET','POST'])
+def venuefns():
+    if request.method == 'GET':
+        venues = Venue.query.all()
+        print(venues)
+        
+        venue_data = []
+        for venue in venues:
+            venue_info = {
+                'id': venue.id,
+                'name': venue.name,
+                'address': venue.address,
+                'capacity': venue.capacity,
+                'description': venue.description,
+            }
 
+            venue_data.append(venue_info)
+        return make_response(jsonify(venue_data), 200)
+        
+        # return make_response(jsonify([venue.search() for venue in venues]), 200)
+    if request.method == 'POST':
+        data = request.get_json()
+        name = data['name']
+        address = data['address']
+        capacity = data['capacity']
+        description = data['description']
+        venue = Venue(name=name, address=address, capacity=capacity, description=description)
+        db.session.add(venue)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Venue has been added successfully'}), 200)
+
+@app.route('/apis/venues/<int:venue_id>', methods=['GET', 'PUT', 'DELETE'])    
+def venuefn(venue_id):    
+    if request.method == 'PUT':
+        venue = Venue.query.get(venue_id)
+        if not venue:
+            return make_response(jsonify({'message': 'Venue not found'}), 404)
+        data = request.get_json()
+        capacity = data.get('capacity')
+        description = data.get('description')
+        name = data['name']
+        address = data['address']
+
+        if capacity is not None:
+            venue.capacity = capacity
+        if description is not None:
+            venue.description = description
+
+        db.session.commit()
+        return make_response(jsonify({'message': 'Venue updated successfully'}), 200)
+    
+    if request.method == 'DELETE':
+        venue = Venue.query.get(venue_id)
+        if not venue:
+            return make_response(jsonify({'message': 'Venue not found'}), 404)
+        db.session.delete(venue)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Venue deleted successfully'}), 200)
+    
+    if request.method == 'GET':
+        venue = Venue.query.get(venue_id)
+        if not venue:
+            return make_response(jsonify({'message': 'Venue not found'}), 404)
+        return make_response(jsonify(venue.search()), 200)
+
+from routes.auth import *
+# api.add_resource(login, '/api/login')
+api_hanlder.add_resource(logout, '/api/logout')
+api_hanlder.add_resource(test_register, '/test')
+
+from routes.venue import *
+api_hanlder.add_resource(all_venue, '/api/venues')
+api_hanlder.add_resource(venue, '/api/venues/<int:venue_id>')
 
 '''
 @app.route('/usesrr_login', methods=['GET', 'POST'])
