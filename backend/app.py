@@ -8,7 +8,7 @@ from config import LocalDev
 from security_framework import security, user_datastore, roles_required, current_user
 from db.models import db, User
 
-from tasks import celery, ContextTask
+# from tasks import celery, ContextTask
 
 # Initialize the app variable to None
 app = None
@@ -45,7 +45,7 @@ security.init_app(app, user_datastore)
 CORS(app)
 
 # celery.conf.update(broker_url='redis://localhost:6379/1', backend='redis://localhost:6379/2')
-celery.Task = ContextTask
+# celery.Task = ContextTask
 app.app_context().push()
 
 from routes.auth import *
@@ -73,11 +73,11 @@ api_handler.add_resource(create_booking, '/api/bookings')
 api_handler.add_resource(list_show, '/api/show/<show_id>')
 api_handler.add_resource(list_venues, '/api/venues')
 
-from tasks import add
-@app.route('/test_celery')
-def celery_test():
-    add.delay()
-    return "Reset task queued!"
+# from tasks import add
+# @app.route('/test_celery')
+# def celery_test():
+#     add.delay()
+#     return "Reset task queued!"
 
 if __name__ == '__main__':        # If this script is run directly (not imported), then run the app
     app.run()
