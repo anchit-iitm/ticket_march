@@ -1,0 +1,45 @@
+Dear student,
+
+Please find below the steps to be followed for Appdev viva and gmeet link for the session.
+
+Login to the GMeet using your student email id, at least 10 min before the viva starts.
+
+Keep a copy of the student ID card ready to show it to the examiner before the start of the viva.
+
+Keep your video ON at all times during the viva.
+
+The entire viva GMeet session will be recorded and kept for use by the IITM team.
+
+Please take the viva from a quiet place, where no one is around and where there would be no disturbance. 
+
+Please login to the GMeet from either a desktop or a laptop computer. Do not login from any mobile devices. 
+
+Please ensure that the webcam and the mic are working well on your computer, and that you are able to share your entire screen, BEFORE the start of the viva so that there are no issues during the session.
+
+Please be dressed in a formal manner, the way you will for an interview. The examiners are industry professionals and give importance to formal appearance and conduct.
+
+Please give your name, email id and ID card to the examiner and introduce yourself in a few lines.
+
+Be ready with your project and presentation.
+
+You will NOT get another slot if you miss the slot that you have booked. The marks for this viva component will be 0 if you miss the slot.
+
+You should install the Python package “checksumdir” before coming into the viva using the command “pip install checksumdir”.
+
+You will be asked to run the below Python code over the project root folder you submitted to find the checksum for the submission. Kindly make sure that you run the code only on the submission that was submitted on the portal. If the checksum does not match with the actual checksum, the viva examiner won’t proceed. Kindly note that the checksum changes if there is even a single character change in the entire project.
+
+import checksumdir
+hash = checksumdir.dirhash("folder_name")
+print(hash)
+
+Note: The "folder_name" should be replaced with the actual folder name.
+
+You are required to create a Python file with the above code, and place it parallel to the project root directory, and must try running the given code (after changing the folder name appropriately) at least twice, to ensure smooth functioning of the code during the viva.
+
+We will be creating a google chat room for every date and adding the students having viva on that particular date to the chat room. Please CONFIRM on this chat room, that you will be joining for the viva. You can ping us there for any queries. 
+
+You may check the details in Appdev portal also
+
+Warm regards
+
+POD VIVA Team

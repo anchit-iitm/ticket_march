@@ -4,6 +4,9 @@ from security_framework import login_user, roles_accepted, current_user, logout_
 import bcrypt, secrets
 from flask_cors import CORS
 from flask_restful import Api
+from flask_security import auth_token_required
+
+import os
 
 app = Flask(__name__)
 
@@ -11,6 +14,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./ticket_db.sqlite3'
 app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
 app.config['SECURITY_PASSWORD_SALT'] = secrets.SystemRandom().getrandbits(128)
+app.config['SECURITY_TRACKABLE'] = True
 
 def create_api_app():
     api = Api(app)
@@ -194,14 +198,59 @@ def venuefn(venue_id):
             return make_response(jsonify({'message': 'Venue not found'}), 404)
         return make_response(jsonify(venue.search()), 200)
 
+@app.route('/test_data', methods=['GET'])
+def all_data():
+    venues = Venue.query.all()
+    print(venues)
+    shows = Show.query.all()
+
+    venues_data = []
+    for venue in venues:
+        venue_info = {
+            'id': venue.id,
+            'name': venue.name,
+            'address': venue.address,
+            'capacity': venue.capacity,
+            'description': venue.description,
+            'shows': []
+        }
+        # for show in shows:
+        #     if show.venue_id == venue.id:
+        #         show_info = {
+        #             'id': show.id,
+        #             'name': show.name,
+        #             'description': show.description,
+        #             'rating': show.rating,
+        #             'tags': show.tags,
+        #             'ticket_price': show.ticket_price,
+        #             'total_tickets': show.total_tickets,
+        #             'avialable_tickets': show.avail_ticket,
+        #         }
+        #         venue_info['shows'].append(show_info)
+        venues_data.append(venue_info)
+
+    return make_response(jsonify(venues_data), 200)
+
+from flask import redirect, url_for
+@app.route('/error')
+def error():
+    user = User.query.first()
+    # ebook = Ebook.query.filter_by(id=1).first()
+    var = 'static/test.jpg' # ebook.file_path
+    return make_response(jsonify({"path":var}), 200)
+    # return redirect(url_for('all_data'))
+
 from routes.auth import *
 # api.add_resource(login, '/api/login')
 api_hanlder.add_resource(logout, '/api/logout')
-api_hanlder.add_resource(test_register, '/test')
+api_hanlder.add_resource(test_register, '/api/register')
 
 from routes.venue import *
 api_hanlder.add_resource(all_venue, '/api/venues')
 api_hanlder.add_resource(venue, '/api/venues/<int:venue_id>')
+
+from routes.all_data import *
+api_hanlder.add_resource(VenueShow, '/venues-and-shows')
 
 '''
 @app.route('/usesrr_login', methods=['GET', 'POST'])
@@ -218,4 +267,4 @@ if __name__ == '__main__':
     db.create_all()
     create_roles()
     admin_user_creation()
-    app.run(debug=True)
+    app.run(debug=True, port=6000)

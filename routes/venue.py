@@ -39,6 +39,8 @@ class all_venue(Resource):
 
 #/api/venues/<int:venue_id>
 class venue(Resource):
+    @auth_token_required
+    @roles_accepted('admin', 'user')
     def get(self, venue_id):
         venue = Venue.query.get(venue_id)
         if not venue:
@@ -52,8 +54,8 @@ class venue(Resource):
         }
         return make_response(jsonify(venue_info), 200)
     
-    @auth_token_required
-    @roles_accepted('admin', 'user')
+    @auth_token_required # from flask_security import auth_token_required, roles_accepted. handles out token based authentication
+    @roles_accepted('admin', 'user') # rbac
     def put(self, venue_id):
         venue = Venue.query.get(venue_id)
         if not venue: # if not venue and if venue.who_created != current_user.id:

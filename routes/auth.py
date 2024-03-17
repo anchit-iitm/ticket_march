@@ -2,7 +2,8 @@ from flask import jsonify, request, make_response
 from models import *
 from security_framework import user_datastore, bcrypt, login_user, roles_accepted, current_user, logout_user
 from flask_restful import Resource
-
+from flask_security import auth_token_required
+# from app import user_datastore
 
 class test_register(Resource):
     def post(self):
@@ -29,5 +30,10 @@ class test_register(Resource):
 
 class logout(Resource):
     def post(self):
-        logout_user()
-        return make_response(jsonify({'message': 'User has been logged out successfully'}), 200)
+        activity = UserActivity(user_id=current_user.id, activity_type='logout')
+        db.session.add(activity)
+        db.session.commit()
+        if current_user.is_authenicated:
+            logout_user()
+            return make_response(jsonify({'message': 'User has been logged out successfully'}), 200)
+        return make_response(jsonify({'message': 'User is not logged in'}), 300)
